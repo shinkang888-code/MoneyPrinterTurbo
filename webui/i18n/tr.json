@@ -162,6 +162,12 @@
     "Coverr API Key deleted successfully": "Coverr API Anahtarı başarıyla silindi",
     "Advanced Video Settings": "Gelişmiş Video Ayarları",
     "Video Encoder": "Video Kodlayıcı",
-    "Video Encoder Help": "Gelişmiş seçenek. libx264 en güvenli varsayılandır. Donanım kodlayıcı seçildiğinde mevcut FFmpeg, GPU veya sürücü bunu kullanamıyorsa uygulama libx264'ye geri döner."
+    "Video Encoder Help": "Gelişmiş seçenek. libx264 en güvenli varsayılandır. Donanım kodlayıcı seçildiğinde mevcut FFmpeg, GPU veya sürücü bunu kullanamıyorsa uygulama libx264'ye geri döner.",
+    "Task History": "Task History",
+    "No tasks yet": "No tasks yet",
+    "Task Complete": "Complete",
+    "Task Failed": "Failed",
+    "Task Processing": "Processing",
+    "Total Tasks": "Total tasks"
   }
 }

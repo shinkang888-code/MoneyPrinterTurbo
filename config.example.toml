@@ -308,11 +308,20 @@ redis_port = 6379
 redis_db = 0
 redis_password = ""
 
+# Persist task history and app settings in Postgres (Neon).
+# When enabled, takes priority over in-memory / Redis task state.
+enable_postgres = false
+# Prefer DATABASE_URL env var; this field is optional fallback.
+database_url = ""
+
 # 文生视频时的最大并发任务数
 max_concurrent_tasks = 5
 
 # 并发任务已满后的最大排队任务数，超过后接口返回 429，避免匿名请求无限堆积
 max_queued_tasks = 100
+
+# WebUI 同步 Postgres 设置/任务历史时使用的 API 地址（Docker 分离部署时填 api 服务 URL）
+webui_api_base_url = "http://127.0.0.1:8080"
 
 
 [whisper]

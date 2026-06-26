@@ -380,3 +380,29 @@ class VideoMaterialUploadResponse(BaseResponse):
                 },
             },
         }
+
+
+class SettingUpsertRequest(BaseModel):
+    value: Any
+
+
+class SettingResponse(BaseResponse):
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": 200,
+                "message": "success",
+                "data": {"key": "webui_prefs", "value": {"language": "ko"}},
+            },
+        }
+
+
+class SettingsListResponse(BaseResponse):
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": 200,
+                "message": "success",
+                "data": {"settings": {"webui_prefs": {"language": "ko"}}},
+            },
+        }

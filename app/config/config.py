@@ -124,6 +124,23 @@ def get_default_ollama_base_url() -> str:
     return f"http://{_DOCKER_HOST_GATEWAY_NAME}:11434/v1"
 
 
+def load_dotenv_file() -> None:
+    env_file = os.path.join(root_dir, ".env")
+    if not os.path.isfile(env_file):
+        return
+
+    with open(env_file, mode="r", encoding="utf-8") as fp:
+        for raw_line in fp:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
 def load_config():
     # fix: IsADirectoryError: [Errno 21] Is a directory: '/MoneyPrinterTurbo/config.toml'
     if os.path.isdir(config_file):
@@ -157,6 +174,7 @@ def save_config():
         f.write(toml.dumps(_cfg))
 
 
+load_dotenv_file()
 _cfg = load_config()
 app = _cfg.get("app", {})
 whisper = _cfg.get("whisper", {})
@@ -175,7 +193,7 @@ hostname = socket.gethostname()
 
 log_level = _cfg.get("log_level", "DEBUG")
 listen_host = _cfg.get("listen_host", "0.0.0.0")
-listen_port = _cfg.get("listen_port", 8080)
+listen_port = int(os.getenv("PORT", _cfg.get("listen_port", 8080)))
 project_name = _cfg.get("project_name", "MoneyPrinterTurbo")
 project_description = _cfg.get(
     "project_description",
@@ -189,6 +207,15 @@ app["redis_host"] = os.getenv(
     "MPT_APP_REDIS_HOST",
     os.getenv("REDIS_HOST", app.get("redis_host", "localhost")),
 )
+app["database_url"] = os.getenv(
+    "DATABASE_URL",
+    os.getenv("MPT_DATABASE_URL", app.get("database_url", "")),
+)
+_enable_postgres_raw = os.getenv(
+    "MPT_ENABLE_POSTGRES",
+    app.get("enable_postgres", False),
+)
+app["enable_postgres"] = str(_enable_postgres_raw).lower() in ("1", "true", "yes", "on")
 
 imagemagick_path = app.get("imagemagick_path", "")
 if imagemagick_path and os.path.isfile(imagemagick_path):

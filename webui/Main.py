@@ -16,6 +16,7 @@ if root_dir not in sys.path:
     print("")
 
 from app.config import config
+from app.models import const
 from app.models.schema import (
     MaterialInfo,
     VideoAspect,
@@ -26,6 +27,28 @@ from app.models.schema import (
 from app.services import llm, voice
 from app.services import task as tm
 from app.utils import utils
+from webui import settings_client
+
+_boot_prefs = (
+    settings_client.load_webui_prefs()
+    if settings_client.is_settings_sync_enabled()
+    else {}
+)
+if _boot_prefs:
+    settings_client.apply_webui_prefs(_boot_prefs)
+
+
+def persist_webui_settings() -> None:
+    if not settings_client.is_settings_sync_enabled():
+        return
+    settings_client.sync_webui_prefs(
+        ui_language=st.session_state.get("ui_language", ""),
+        hide_config=config.app.get("hide_config", False),
+        hide_log=config.ui.get("hide_log", False),
+        match_materials_to_script=st.session_state.get(
+            "match_materials_to_script", False
+        ),
+    )
 
 st.set_page_config(
     page_title="MoneyPrinterTurbo",
@@ -73,10 +96,15 @@ if "use_custom_system_prompt" not in st.session_state:
     st.session_state["use_custom_system_prompt"] = False
 if "match_materials_to_script" not in st.session_state:
     st.session_state["match_materials_to_script"] = bool(
-        config.app.get("match_materials_to_script", False)
+        _boot_prefs.get(
+            "match_materials_to_script",
+            config.app.get("match_materials_to_script", False),
+        )
     )
 if "ui_language" not in st.session_state:
-    st.session_state["ui_language"] = config.ui.get("language", system_locale)
+    st.session_state["ui_language"] = _boot_prefs.get(
+        "ui_language", config.ui.get("language", system_locale)
+    )
 if "local_video_materials" not in st.session_state:
     # 记住用户最近一次已经落盘的本地素材，避免仅修改文案后二次生成时丢失素材列表。
     st.session_state["local_video_materials"] = []
@@ -109,6 +137,7 @@ with lang_col:
         code = selected_language.split(" - ")[0].strip()
         st.session_state["ui_language"] = code
         config.ui["language"] = code
+        persist_webui_settings()
 
 support_locales = [
     "zh-CN",
@@ -222,6 +251,7 @@ def tr(key):
     loc = locales.get(st.session_state["ui_language"], {})
     return loc.get("Translation", {}).get(key, key)
 
+
 @st.cache_data(ttl=300, show_spinner=False)
 def get_groq_model_ids(api_key: str, base_url: str) -> list[str]:
     if not api_key:
@@ -252,6 +282,32 @@ def get_groq_model_ids(api_key: str, base_url: str) -> list[str]:
         logger.warning(f"failed to fetch groq models: {e}")
         return []
 
+if settings_client.is_settings_sync_enabled():
+    with st.expander(tr("Task History"), expanded=False):
+        history_page = int(st.session_state.get("task_history_page", 1))
+        history_tasks, history_total = settings_client.fetch_recent_tasks(
+            page=history_page,
+            page_size=10,
+        )
+        if not history_tasks:
+            st.info(tr("No tasks yet"))
+        else:
+            for task in history_tasks:
+                task_id = task.get("task_id", "")
+                progress = task.get("progress", 0)
+                state_label = settings_client.task_state_label(
+                    int(task.get("state", const.TASK_STATE_PROCESSING)),
+                    tr,
+                )
+                st.markdown(
+                    f"**{task_id}** — {state_label} ({progress}%)"
+                )
+                videos = task.get("videos") or []
+                if videos:
+                    st.caption(", ".join(str(item) for item in videos))
+        if history_total > 10:
+            st.caption(f"{tr('Total Tasks')}: {history_total}")
+
 # 创建基础设置折叠框
 if not config.app.get("hide_config", False):
     with st.expander(tr("Basic Settings"), expanded=False):
@@ -267,12 +323,14 @@ if not config.app.get("hide_config", False):
                 tr("Hide Basic Settings"), value=config.app.get("hide_config", False)
             )
             config.app["hide_config"] = hide_config
+            persist_webui_settings()
 
             # 是否禁用日志显示
             hide_log = st.checkbox(
                 tr("Hide Log"), value=config.ui.get("hide_log", False)
             )
             config.ui["hide_log"] = hide_log
+            persist_webui_settings()
 
         # 中间面板 - LLM 设置
 
@@ -930,6 +988,7 @@ with middle_panel:
                 key="match_materials_to_script",
             )
             config.app["match_materials_to_script"] = params.match_materials_to_script
+            persist_webui_settings()
 
             video_codec_options = [
                 ("libx264 (CPU)", "libx264"),
@@ -1640,6 +1699,8 @@ if start_button:
 
     open_task_folder(task_id)
     logger.info(tr("Video Generation Completed"))
+    persist_webui_settings()
     scroll_to_bottom()
 
 config.save_config()
+persist_webui_settings()

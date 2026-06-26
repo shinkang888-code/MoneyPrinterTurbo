@@ -1,0 +1,17 @@
+# Render Blueprint
+# Deploy: https://dashboard.render.com/blueprint/new?repo=https://github.com/shinkang888-code/MoneyPrinterTurbo
+services:
+  - type: web
+    name: moneyprinterturbo
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /
+    envVars:
+      - key: MPT_ENABLE_POSTGRES
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: PYTHONUNBUFFERED
+        value: "1"

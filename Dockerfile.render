@@ -1,0 +1,23 @@
+# Render.com deployment (WebUI + ffmpeg)
+FROM python:3.11-slim-bullseye
+
+WORKDIR /MoneyPrinterTurbo
+RUN chmod 777 /MoneyPrinterTurbo
+
+ENV PYTHONPATH="/MoneyPrinterTurbo"
+ENV PORT=8501
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    imagemagick \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --retries 3 --timeout 120 -r requirements.txt
+
+COPY . .
+
+EXPOSE 8501
+
+CMD ["sh", "-c", "streamlit run ./webui/Main.py --server.address=0.0.0.0 --server.port=${PORT} --browser.serverAddress=0.0.0.0 --server.enableCORS=true --browser.gatherUsageStats=false --server.showEmailPrompt=false"]

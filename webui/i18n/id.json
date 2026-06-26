@@ -164,6 +164,12 @@
     "Coverr API Key deleted successfully": "Kunci API Coverr berhasil dihapus",
     "Advanced Video Settings": "Pengaturan Video Lanjutan",
     "Video Encoder": "Encoder Video",
-    "Video Encoder Help": "Opsi lanjutan. libx264 adalah default teraman. Saat encoder perangkat keras dipilih, aplikasi akan kembali ke libx264 jika FFmpeg, GPU, atau driver saat ini tidak dapat menggunakannya."
+    "Video Encoder Help": "Opsi lanjutan. libx264 adalah default teraman. Saat encoder perangkat keras dipilih, aplikasi akan kembali ke libx264 jika FFmpeg, GPU, atau driver saat ini tidak dapat menggunakannya.",
+    "Task History": "Task History",
+    "No tasks yet": "No tasks yet",
+    "Task Complete": "Complete",
+    "Task Failed": "Failed",
+    "Task Processing": "Processing",
+    "Total Tasks": "Total tasks"
   }
 }

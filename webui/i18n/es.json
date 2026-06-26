@@ -164,6 +164,12 @@
     "Coverr API Key deleted successfully": "API Key de Coverr eliminada correctamente",
     "Advanced Video Settings": "Configuración avanzada de vídeo",
     "Video Encoder": "Codificador de vídeo",
-    "Video Encoder Help": "Opción avanzada. libx264 es el predeterminado más seguro. Cuando se selecciona un codificador de hardware, la aplicación vuelve a libx264 si el FFmpeg, GPU o controlador actuales no pueden usarlo."
+    "Video Encoder Help": "Opción avanzada. libx264 es el predeterminado más seguro. Cuando se selecciona un codificador de hardware, la aplicación vuelve a libx264 si el FFmpeg, GPU o controlador actuales no pueden usarlo.",
+    "Task History": "Task History",
+    "No tasks yet": "No tasks yet",
+    "Task Complete": "Complete",
+    "Task Failed": "Failed",
+    "Task Processing": "Processing",
+    "Total Tasks": "Total tasks"
   }
 }

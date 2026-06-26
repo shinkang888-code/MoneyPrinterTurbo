@@ -1,25 +1,10 @@
 import ast
 import copy
 import threading
-from abc import ABC, abstractmethod
 
 from app.config import config
 from app.models import const
-
-
-# Base class for state management
-class BaseState(ABC):
-    @abstractmethod
-    def update_task(self, task_id: str, state: int, progress: int = 0, **kwargs):
-        pass
-
-    @abstractmethod
-    def get_task(self, task_id: str):
-        pass
-
-    @abstractmethod
-    def get_all_tasks(self, page: int, page_size: int):
-        pass
+from app.services.base_state import BaseState
 
 
 # Memory state management
@@ -174,16 +159,21 @@ class RedisState(BaseState):
 
 
 # Global state
+_enable_postgres = config.app.get("enable_postgres", False)
+_database_url = (config.app.get("database_url") or "").strip()
 _enable_redis = config.app.get("enable_redis", False)
 _redis_host = config.app.get("redis_host", "localhost")
 _redis_port = config.app.get("redis_port", 6379)
 _redis_db = config.app.get("redis_db", 0)
 _redis_password = config.app.get("redis_password", None)
 
-state = (
-    RedisState(
+if _enable_postgres and _database_url:
+    from app.services.postgres_state import PostgresState
+
+    state = PostgresState(_database_url)
+elif _enable_redis:
+    state = RedisState(
         host=_redis_host, port=_redis_port, db=_redis_db, password=_redis_password
     )
-    if _enable_redis
-    else MemoryState()
-)
+else:
+    state = MemoryState()
