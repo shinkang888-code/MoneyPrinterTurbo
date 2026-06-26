@@ -6,7 +6,7 @@ services:
     runtime: docker
     plan: free
     region: virginia
-    dockerfilePath: ./Dockerfile.render
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /
     envVars:
       - key: MPT_ENABLE_POSTGRES
