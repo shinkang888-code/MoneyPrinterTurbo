@@ -79,7 +79,26 @@ font_dir = os.path.join(root_dir, "resource", "fonts")
 song_dir = os.path.join(root_dir, "resource", "songs")
 i18n_dir = os.path.join(root_dir, "webui", "i18n")
 config_file = os.path.join(root_dir, "webui", ".streamlit", "webui.toml")
+DEFAULT_UI_LANGUAGE = "ko"
+UI_LOCALE_ORDER = ["ko", "zh", "en", "de", "es", "id", "pt", "ru", "tr", "vi"]
 system_locale = utils.get_system_locale()
+
+
+def resolve_ui_locale(code: str, locales: dict) -> str:
+    if code in locales:
+        return code
+    short_code = (code or "").split("-")[0]
+    if short_code in locales:
+        return short_code
+    return DEFAULT_UI_LANGUAGE
+
+
+def get_ui_locale_codes(locales: dict) -> list[str]:
+    ordered = [code for code in UI_LOCALE_ORDER if code in locales]
+    for code in locales:
+        if code not in ordered:
+            ordered.append(code)
+    return ordered
 
 
 if "video_subject" not in st.session_state:
@@ -101,16 +120,34 @@ if "match_materials_to_script" not in st.session_state:
             config.app.get("match_materials_to_script", False),
         )
     )
-if "ui_language" not in st.session_state:
-    st.session_state["ui_language"] = _boot_prefs.get(
-        "ui_language", config.ui.get("language", system_locale)
-    )
 if "local_video_materials" not in st.session_state:
     # 记住用户最近一次已经落盘的本地素材，避免仅修改文案后二次生成时丢失素材列表。
     st.session_state["local_video_materials"] = []
 
 # 加载语言文件
 locales = utils.load_locales(i18n_dir)
+
+if "ui_language" not in st.session_state:
+    st.session_state["ui_language"] = resolve_ui_locale(
+        _boot_prefs.get(
+            "ui_language",
+            config.ui.get("language") or DEFAULT_UI_LANGUAGE,
+        ),
+        locales,
+    )
+else:
+    st.session_state["ui_language"] = resolve_ui_locale(
+        st.session_state["ui_language"],
+        locales,
+    )
+config.ui["language"] = st.session_state["ui_language"]
+
+
+def tr(key):
+    locale_code = resolve_ui_locale(st.session_state["ui_language"], locales)
+    loc = locales.get(locale_code, {})
+    return loc.get("Translation", {}).get(key, key)
+
 
 # 创建一个顶部栏，包含标题和语言选择
 title_col, lang_col = st.columns([3, 1])
@@ -121,13 +158,15 @@ with title_col:
 with lang_col:
     display_languages = []
     selected_index = 0
-    for i, code in enumerate(locales.keys()):
+    ui_locale_codes = get_ui_locale_codes(locales)
+    current_ui_locale = st.session_state.get("ui_language", DEFAULT_UI_LANGUAGE)
+    for i, code in enumerate(ui_locale_codes):
         display_languages.append(f"{code} - {locales[code].get('Language')}")
-        if code == st.session_state.get("ui_language", ""):
+        if code == current_ui_locale:
             selected_index = i
 
     selected_language = st.selectbox(
-        "Language / 语言",
+        f"{tr('Language')} / Language",
         options=display_languages,
         index=selected_index,
         key="top_language_selector",
@@ -140,6 +179,7 @@ with lang_col:
         persist_webui_settings()
 
 support_locales = [
+    "ko-KR",
     "zh-CN",
     "zh-HK",
     "zh-TW",
@@ -244,13 +284,6 @@ def init_log():
 
 init_log()
 
-locales = utils.load_locales(i18n_dir)
-
-
-def tr(key):
-    loc = locales.get(st.session_state["ui_language"], {})
-    return loc.get("Translation", {}).get(key, key)
-
 
 @st.cache_data(ttl=300, show_spinner=False)
 def get_groq_model_ids(api_key: str, base_url: str) -> list[str]:
@@ -343,6 +376,8 @@ if not config.app.get("hide_config", False):
             aihubmix_label = f"AIHubMix ({tr('Recommended')})"
             if config.ui.get("language") == "zh":
                 aihubmix_label = "AIHubMix（推荐）"
+            elif config.ui.get("language") == "ko":
+                aihubmix_label = "AIHubMix (추천)"
             llm_provider_options = [
                 ("OpenAI", "openai"),
                 (aihubmix_label, "aihubmix"),
@@ -646,7 +681,7 @@ if not config.app.get("hide_config", False):
                             - **Model Name**: LiteLLM format — `openai/gpt-4o`, `anthropic/claude-sonnet-4-20250514`, `bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0`, `gemini/gemini-2.5-flash`. See [full provider list](https://docs.litellm.ai/docs/providers)
                             """
 
-            if tips and config.ui["language"] == "zh":
+            if tips and config.ui["language"] in ("zh", "ko"):
                 st.info(tips)
 
             st_llm_api_key = st.text_input(

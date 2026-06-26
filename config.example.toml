@@ -373,6 +373,8 @@ model_id = "eleven_multilingual_v2"
 
 [ui]
 # UI related settings
+# WebUI display language (ko, en, zh, ...)
+language = "ko"
 # 是否隐藏日志信息
 # Whether to hide logs in the UI
 hide_log = false

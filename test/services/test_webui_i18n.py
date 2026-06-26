@@ -55,6 +55,15 @@ class TestWebuiI18n(unittest.TestCase):
 
         self.assertEqual(sorted(visitor.keys - ru_keys), [])
 
+    def test_korean_locale_covers_static_webui_labels(self):
+        tree = ast.parse(WEBUI_MAIN.read_text(encoding="utf-8"))
+        visitor = _TrKeyVisitor()
+        visitor.visit(tree)
+
+        ko_keys = set(_load_translation("ko"))
+
+        self.assertEqual(sorted(visitor.keys - ko_keys), [])
+
     def test_script_language_options_include_russian(self):
         tree = ast.parse(WEBUI_MAIN.read_text(encoding="utf-8"))
         support_locales = None
@@ -71,3 +80,4 @@ class TestWebuiI18n(unittest.TestCase):
 
         self.assertIsNotNone(support_locales)
         self.assertIn("ru-RU", support_locales)
+        self.assertIn("ko-KR", support_locales)
