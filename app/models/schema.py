@@ -80,7 +80,7 @@ class VideoParams(BaseModel):
     match_materials_to_script: bool = False
     video_count: Optional[int] = 1
 
-    video_source: Optional[str] = "pexels"
+    video_source: Optional[str] = "auto"
     video_materials: Optional[List[MaterialInfo]] = (
         None  # Materials used to generate the video
     )

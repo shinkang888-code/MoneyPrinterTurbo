@@ -229,23 +229,35 @@ def get_video_materials(task_id, params, video_terms, audio_duration):
             return None
         return [material_info.url for material_info in materials]
     else:
-        logger.info(f"\n\n## downloading videos from {params.video_source}")
-        # 顺序匹配模式只在用户显式开启时生效。这里强制素材下载按关键词顺序
-        # 轮询，避免某个早期关键词下载太多素材，把后续脚本主题挤出最终时间线。
-        downloaded_videos = material.download_videos(
-            task_id=task_id,
-            search_terms=video_terms,
-            source=params.video_source,
-            video_aspect=params.video_aspect,
-            video_concat_mode=(
-                VideoConcatMode.sequential
-                if params.match_materials_to_script
-                else params.video_concat_mode
-            ),
-            audio_duration=audio_duration * params.video_count,
-            max_clip_duration=params.video_clip_duration,
-            match_script_order=params.match_materials_to_script,
+        from app.services import video_source as video_source_service
+
+        sources_to_try = video_source_service.get_sources_for_download(
+            params.video_source
         )
+        downloaded_videos = []
+        for source in sources_to_try:
+            logger.info(f"\n\n## downloading videos from {source}")
+            # 顺序匹配模式只在用户显式开启时生效。这里强制素材下载按关键词顺序
+            # 轮询，避免某个早期关键词下载太多素材，把后续脚本主题挤出最终时间线。
+            downloaded_videos = material.download_videos(
+                task_id=task_id,
+                search_terms=video_terms,
+                source=source,
+                video_aspect=params.video_aspect,
+                video_concat_mode=(
+                    VideoConcatMode.sequential
+                    if params.match_materials_to_script
+                    else params.video_concat_mode
+                ),
+                audio_duration=audio_duration * params.video_count,
+                max_clip_duration=params.video_clip_duration,
+                match_script_order=params.match_materials_to_script,
+            )
+            if downloaded_videos:
+                if params.video_source == "auto" and source != params.video_source:
+                    logger.info(f"auto mode selected source: {source}")
+                break
+
         if not downloaded_videos:
             sm.state.update_task(task_id, state=const.TASK_STATE_FAILED)
             logger.error(

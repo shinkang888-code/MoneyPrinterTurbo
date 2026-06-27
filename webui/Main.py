@@ -27,7 +27,7 @@ from app.models.schema import (
 from app.services import llm, voice
 from app.services import task as tm
 from app.utils import utils
-from webui import settings_client
+from webui import settings_client, video_source_selector
 
 _boot_prefs = (
     settings_client.load_webui_prefs()
@@ -755,38 +755,8 @@ if not config.app.get("hide_config", False):
 
         # 右侧面板 - API 密钥设置
         with right_config_panel:
-
-            def get_keys_from_config(cfg_key):
-                api_keys = config.app.get(cfg_key, [])
-                if isinstance(api_keys, str):
-                    api_keys = [api_keys]
-                api_key = ", ".join(api_keys)
-                return api_key
-
-            def save_keys_to_config(cfg_key, value):
-                value = value.replace(" ", "")
-                if value:
-                    config.app[cfg_key] = value.split(",")
-
             st.write(tr("Video Source Settings"))
-
-            pexels_api_key = get_keys_from_config("pexels_api_keys")
-            pexels_api_key = st.text_input(
-                tr("Pexels API Key"), value=pexels_api_key, type="password"
-            )
-            save_keys_to_config("pexels_api_keys", pexels_api_key)
-
-            pixabay_api_key = get_keys_from_config("pixabay_api_keys")
-            pixabay_api_key = st.text_input(
-                tr("Pixabay API Key"), value=pixabay_api_key, type="password"
-            )
-            save_keys_to_config("pixabay_api_keys", pixabay_api_key)
-
-            coverr_api_key = get_keys_from_config("coverr_api_keys")
-            coverr_api_key = st.text_input(
-                tr("Coverr API Key"), value=coverr_api_key, type="password"
-            )
-            save_keys_to_config("coverr_api_keys", coverr_api_key)
+            st.caption(tr("Video Source Settings Help"))
 
 llm_provider = config.app.get("llm_provider", "").lower()
 panel = st.columns(3)
@@ -915,29 +885,12 @@ with middle_panel:
             (tr("Sequential"), "sequential"),
             (tr("Random"), "random"),
         ]
-        video_sources = [
-            (tr("Pexels"), "pexels"),
-            (tr("Pixabay"), "pixabay"),
-            (tr("Coverr"), "coverr"),
-            (tr("Local file"), "local"),
-            (tr("TikTok"), "douyin"),
-            (tr("Bilibili"), "bilibili"),
-            (tr("Xiaohongshu"), "xiaohongshu"),
-        ]
-
-        saved_video_source_name = config.app.get("video_source", "pexels")
-        saved_video_source_index = [v[1] for v in video_sources].index(
-            saved_video_source_name
+        params.video_source = video_source_selector.render_video_source_toggle(
+            tr, config.app
         )
-
-        selected_index = st.selectbox(
-            tr("Video Source"),
-            options=range(len(video_sources)),
-            format_func=lambda x: video_sources[x][0],
-            index=saved_video_source_index,
+        video_source_selector.render_source_api_key_fields(
+            tr, config.app, params.video_source
         )
-        params.video_source = video_sources[selected_index][1]
-        config.app["video_source"] = params.video_source
 
         if params.video_source == "local":
             # Streamlit 的文件类型校验对扩展名大小写敏感，这里同时放行大小写两种形式。
@@ -1634,23 +1587,17 @@ if start_button:
         scroll_to_bottom()
         st.stop()
 
-    if params.video_source not in ["pexels", "pixabay", "coverr", "local"]:
-        st.error(tr("Please Select a Valid Video Source"))
-        scroll_to_bottom()
-        st.stop()
-
-    if params.video_source == "pexels" and not config.app.get("pexels_api_keys", ""):
-        st.error(tr("Please Enter the Pexels API Key"))
-        scroll_to_bottom()
-        st.stop()
-
-    if params.video_source == "pixabay" and not config.app.get("pixabay_api_keys", ""):
-        st.error(tr("Please Enter the Pixabay API Key"))
-        scroll_to_bottom()
-        st.stop()
-
-    if params.video_source == "coverr" and not config.app.get("coverr_api_keys", ""):
-        st.error(tr("Please Enter the Coverr API Key"))
+    has_local_materials = bool(uploaded_files) or bool(
+        st.session_state.get("local_video_materials")
+    )
+    source_ok, source_error = video_source_selector.validate_video_source(
+        tr,
+        config.app,
+        params.video_source,
+        has_local_materials=has_local_materials,
+    )
+    if not source_ok:
+        st.error(source_error)
         scroll_to_bottom()
         st.stop()
 
