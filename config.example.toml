@@ -1,5 +1,5 @@
 [app]
-video_source = "auto" # "auto", "pexels", "pixabay", "coverr", or "local"
+video_source = "auto" # "auto", "pexels", "pixabay", "coverr", "higgsfield", or "local"
 
 # 是否隐藏配置面板
 hide_config = false
@@ -47,6 +47,16 @@ pixabay_api_keys = []
 # 请使用英文半角双引号包裹每个 Key；从富文本复制来的弯引号会导致 TOML 解析失败。
 # 特别注意格式，Key 用英文双引号括起来，多个Key用逗号隔开
 coverr_api_keys = []
+
+# Higgsfield API Key (AI video generation)
+# Register at https://cloud.higgsfield.ai/ and create an API key.
+# Format: "API_KEY:API_SECRET"
+# For example: higgsfield_api_keys = ["your-key-id:your-key-secret"]
+higgsfield_api_keys = []
+# Default text-to-video model path (Kling 3.0 Turbo)
+higgsfield_model = "/jobs/v2/kling3_0_turbo"
+# Generated clip duration in seconds
+higgsfield_video_duration = 5
 
 # 支持的提供商 (Supported providers):
 #   openai

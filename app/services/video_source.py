@@ -2,11 +2,12 @@ from typing import Callable, List, Optional
 
 from app.config import config
 
-STOCK_SOURCES: List[str] = ["pexels", "pixabay", "coverr"]
+STOCK_SOURCES: List[str] = ["pexels", "pixabay", "coverr", "higgsfield"]
 SOURCE_CONFIG_KEYS = {
     "pexels": "pexels_api_keys",
     "pixabay": "pixabay_api_keys",
     "coverr": "coverr_api_keys",
+    "higgsfield": "higgsfield_api_keys",
 }
 
 

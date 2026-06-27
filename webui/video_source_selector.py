@@ -4,13 +4,14 @@ import streamlit as st
 
 from app.services import video_source as vs
 
-VIDEO_SOURCE_IDS = ["auto", "pexels", "pixabay", "coverr", "local"]
+VIDEO_SOURCE_IDS = ["auto", "pexels", "pixabay", "coverr", "higgsfield", "local"]
 
 SOURCE_I18N_KEYS = {
     "auto": "Auto Mode",
     "pexels": "Pexels",
     "pixabay": "Pixabay",
     "coverr": "Coverr",
+    "higgsfield": "Higgsfield",
     "local": "Local file",
 }
 
@@ -82,6 +83,9 @@ def render_source_api_key_fields(
     if selected_source == "local":
         st.caption(tr("Local Video Source Help"))
         return
+
+    if selected_source == "higgsfield":
+        st.caption(tr("Higgsfield Video Source Help"))
 
     cfg_key = vs.SOURCE_CONFIG_KEYS.get(selected_source)
     if not cfg_key:

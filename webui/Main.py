@@ -1475,12 +1475,13 @@ with right_panel:
                 params.rounded_subtitle_background
             )
     with st.expander(tr("Click to show API Key management"), expanded=False):
-        st.subheader(tr("Manage Pexels, Pixabay and Coverr API Keys"))
+        st.subheader(tr("Manage Pexels, Pixabay, Coverr and Higgsfield API Keys"))
 
-        col1, col2, col3 = st.tabs([
+        col1, col2, col3, col4 = st.tabs([
             tr("Pexels API Keys"),
             tr("Pixabay API Keys"),
             tr("Coverr API Keys"),
+            tr("Higgsfield API Keys"),
         ])
 
         with col1:
@@ -1577,6 +1578,45 @@ with right_panel:
                     config.app["coverr_api_keys"].remove(delete_key)
                     config.save_config()
                     st.success(tr("Coverr API Key deleted successfully"))
+
+        with col4:
+            st.subheader(tr("Higgsfield API Keys"))
+            if "higgsfield_api_keys" not in config.app or config.app["higgsfield_api_keys"] is None:
+                config.app["higgsfield_api_keys"] = []
+
+            st.caption(tr("Higgsfield Video Source Help"))
+            if config.app["higgsfield_api_keys"]:
+                st.write(tr("Current Keys:"))
+                for key in config.app["higgsfield_api_keys"]:
+                    st.code(key)
+            else:
+                st.info(tr("No Higgsfield API Keys currently"))
+
+            new_key = st.text_input(
+                tr("Add Higgsfield API Key"),
+                key="higgsfield_new_key",
+                type="password",
+            )
+            if st.button(tr("Add Higgsfield API Key")):
+                if new_key and new_key not in config.app["higgsfield_api_keys"]:
+                    config.app["higgsfield_api_keys"].append(new_key)
+                    config.save_config()
+                    st.success(tr("Higgsfield API Key added successfully"))
+                elif new_key in config.app["higgsfield_api_keys"]:
+                    st.warning(tr("This API Key already exists"))
+                else:
+                    st.error(tr("Please enter a valid API Key"))
+
+            if config.app["higgsfield_api_keys"]:
+                delete_key = st.selectbox(
+                    tr("Select Higgsfield API Key to delete"),
+                    config.app["higgsfield_api_keys"],
+                    key="higgsfield_delete_key",
+                )
+                if st.button(tr("Delete Selected Higgsfield API Key")):
+                    config.app["higgsfield_api_keys"].remove(delete_key)
+                    config.save_config()
+                    st.success(tr("Higgsfield API Key deleted successfully"))
 
 start_button = st.button(tr("Generate Video"), use_container_width=True, type="primary")
 if start_button:

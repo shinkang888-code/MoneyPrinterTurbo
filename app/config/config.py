@@ -225,6 +225,14 @@ _llm_provider = os.getenv("MPT_LLM_PROVIDER", os.getenv("LLM_PROVIDER", "")).str
 if _llm_provider:
     app["llm_provider"] = _llm_provider.lower()
 
+_hf_key = os.getenv("HF_KEY", os.getenv("MPT_HIGGSFIELD_API_KEY", "")).strip()
+if _hf_key:
+    existing = app.get("higgsfield_api_keys") or []
+    if isinstance(existing, str):
+        existing = [existing] if existing else []
+    if _hf_key not in existing:
+        app["higgsfield_api_keys"] = [_hf_key, *existing]
+
 imagemagick_path = app.get("imagemagick_path", "")
 if imagemagick_path and os.path.isfile(imagemagick_path):
     os.environ["IMAGEMAGICK_BINARY"] = imagemagick_path

@@ -34,6 +34,18 @@ class VideoSourceTests(unittest.TestCase):
             ["pixabay", "coverr"],
         )
 
+    def test_get_sources_for_download_includes_higgsfield(self):
+        app_config = {
+            "pexels_api_keys": [],
+            "pixabay_api_keys": [],
+            "coverr_api_keys": [],
+            "higgsfield_api_keys": ["key:secret"],
+        }
+        self.assertEqual(
+            vs.get_sources_for_download("auto", app_config),
+            ["higgsfield"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

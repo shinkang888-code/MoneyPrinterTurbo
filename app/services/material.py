@@ -316,6 +316,10 @@ def download_videos(
         search_videos = search_videos_pixabay
     elif source == "coverr":
         search_videos = search_videos_coverr
+    elif source == "higgsfield":
+        from app.services.higgsfield_material import search_videos_higgsfield
+
+        search_videos = search_videos_higgsfield
 
     material_directory = config.app.get("material_directory", "").strip()
     if material_directory == "task":
