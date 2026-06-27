@@ -217,6 +217,14 @@ _enable_postgres_raw = os.getenv(
 )
 app["enable_postgres"] = str(_enable_postgres_raw).lower() in ("1", "true", "yes", "on")
 
+_gemini_api_key = os.getenv("GEMINI_API_KEY", os.getenv("MPT_GEMINI_API_KEY", ""))
+if _gemini_api_key:
+    app["gemini_api_key"] = _gemini_api_key
+
+_llm_provider = os.getenv("MPT_LLM_PROVIDER", os.getenv("LLM_PROVIDER", "")).strip()
+if _llm_provider:
+    app["llm_provider"] = _llm_provider.lower()
+
 imagemagick_path = app.get("imagemagick_path", "")
 if imagemagick_path and os.path.isfile(imagemagick_path):
     os.environ["IMAGEMAGICK_BINARY"] = imagemagick_path
